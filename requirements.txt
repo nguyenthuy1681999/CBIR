@@ -1,0 +1,9 @@
+Flask
+Werkzeug
+scipy
+pandas
+pillow
+tensorflow
+sklearn
+flask
+gunicorn
