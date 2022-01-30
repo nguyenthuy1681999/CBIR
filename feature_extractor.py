@@ -16,6 +16,7 @@ def image_preprocess(img):
     x = preprocess_input(x)
     return x
 
+# Ham trich xuat dac trung anh
 def extract_vector(model, image_path):
     print("Xu ly : ", image_path)
     img = Image.open(image_path)
