@@ -100,8 +100,10 @@ def index():
         img = Image.open(file)  # PIL image
         uploaded_img_path = "static/uploaded/"+ file.filename
         img.save(uploaded_img_path)
+        # lấy content là 3 kí tự đầu của tên query image để evaluate kết quả
         content_image = file.filename[0:3] 
         result, ps = evaluate(uploaded_img_path, content_image, global_df_vectors, global_centroids)
+        # Lấy kết quả và gửi đến html
         rs = result[['Path','Content_compare']]  
         rs = rs.to_records(index=False)
         rs = list(rs)
