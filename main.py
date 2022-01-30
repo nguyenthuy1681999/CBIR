@@ -1,5 +1,3 @@
-import math
-import os
 from urllib import request
 from tensorflow.keras.models import  Model
 from PIL import Image
@@ -18,7 +16,9 @@ def image_preprocess(img):
     x = np.expand_dims(x, axis=0)
     x = preprocess_input(x)
     return x
+  
 
+# Ham trich xuat dac trung anh
 def extract_vector(model, image_path):
     print("Xu ly : ", image_path)
     img = Image.open(image_path)
@@ -39,6 +39,8 @@ def get_extract_model():
 global_df_vectors = pd.read_csv('./static/feature/clusters.csv')
 # Đọc centroids từ file csv
 global_centroids = pd.read_csv('./static/feature/centroids.csv')
+
+#Tra cứu ảnh và đánh giá 
 def evaluate(image_test, content_img_test, global_df_vectors, global_centroids):
   # Khoi tao model
   model = get_extract_model()
@@ -52,11 +54,11 @@ def evaluate(image_test, content_img_test, global_df_vectors, global_centroids):
   distance = np.linalg.norm(np.array(centroids[centroids.columns[0:4096]])- search_vector, axis=1)
 
   #Lấy tên cluster min
-  min_cluster = list(distance).index(np.min( distance))
+  min_cluster = list(distance).index(np.min(distance))
 
   #Lấy ra cluster giống với ảnh query được chọn
   df_vectors = df_vectors[df_vectors["cluster"]== min_cluster]
-  #Ranking lại cluste
+  #Ranking lại cluster
   distance = np.linalg.norm(np.array(df_vectors[df_vectors.columns[0:4096]])- search_vector, axis=1)
   df_vectors['distance'] = pd.Series(distance, index=df_vectors.index)
   df_vectors['rank'] = df_vectors['distance'].rank(ascending = 1)
@@ -72,8 +74,9 @@ def evaluate(image_test, content_img_test, global_df_vectors, global_centroids):
   df_vect = df_vect.set_index('rank')
   df_vect = df_vect.sort_index()
 
-  #Lấy ra kết quả 100 ảnevaluate(image_test, folder_name) giống nhất với ảnh query trong cluster
+  #Lấy ra kết quả tối đa  100 ảnh giống nhất với ảnh query trong cluster
   result = df_vect[0:100] 
+  #So sánh với nhãn để đánh giá true/false
   content_compare = []
   for content in result['Content']:
     if str(content) == content_img_test:
@@ -86,19 +89,18 @@ def evaluate(image_test, content_img_test, global_df_vectors, global_centroids):
   print('Precision:',precision)
   return result,precision
 
-#search image
+#build web Flask
 app = Flask(__name__)
 @app.route('/', methods=['GET', 'POST'])
 
 def index():
-
     if request.method == 'POST':
         file = request.files['query_img']
         # Save query image
         img = Image.open(file)  # PIL image
         uploaded_img_path = "static/uploaded/"+ file.filename
         img.save(uploaded_img_path)
-        content_image = file.filename[0:3]
+        content_image = file.filename[0:3] 
         result, ps = evaluate(uploaded_img_path, content_image, global_df_vectors, global_centroids)
         rs = result[['Path','Content_compare']]  
         rs = rs.to_records(index=False)
